@@ -21,42 +21,42 @@ function lambda_points(data) =
 let (
     lambda0 = [
         inner_hex_points(data)[2]
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(60) * unit,
+        + dict_get(data, "thickness") * rot2d(60) * unit,
         inner_hex_points(data)[5]
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(0) * unit,
+        + dict_get(data, "thickness") * rot2d(0) * unit,
         inner_hex_points(data)[5]
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(180) * unit,
+        + dict_get(data, "thickness") * rot2d(180) * unit,
         inner_hex_points(data)[2]
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(240) * unit,
+        + dict_get(data, "thickness") * rot2d(240) * unit,
     ],
     lambda1 = [
         origin
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(60) * unit
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(120) * unit,
+        + dict_get(data, "thickness") * rot2d(60) * unit
+        + dict_get(data, "thickness") * rot2d(120) * unit,
         origin
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(60) * unit
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(-60) * unit,
+        + dict_get(data, "thickness") * rot2d(60) * unit
+        + dict_get(data, "thickness") * rot2d(-60) * unit,
         inner_hex_points(data)[4]
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(0) * unit,
+        + dict_get(data, "thickness") * rot2d(0) * unit,
         inner_hex_points(data)[4]
-        + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(180) * unit,
+        + dict_get(data, "thickness") * rot2d(180) * unit,
     ]
 )
 [lambda0, lambda1];
 
 function gap_points(data) = [
     inner_hex_points(data)[2]
-    + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(60) * unit
-    + dict_get(data, "scale") * dict_get(data, "gap") * rot2d(90) * unit,
+    + dict_get(data, "thickness") * rot2d(60) * unit
+    + dict_get(data, "gap") * rot2d(90) * unit,
     inner_hex_points(data)[2]
-    + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(60) * unit
-    + dict_get(data, "scale") * dict_get(data, "gap") * rot2d(-60) * unit,
+    + dict_get(data, "thickness") * rot2d(60) * unit
+    + dict_get(data, "gap") * rot2d(-60) * unit,
     inner_hex_points(data)[2]
-    + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(240) * unit
-    + dict_get(data, "scale") * dict_get(data, "gap") * rot2d(-60) * unit,
+    + dict_get(data, "thickness") * rot2d(240) * unit
+    + dict_get(data, "gap") * rot2d(-60) * unit,
     inner_hex_points(data)[2]
-    + dict_get(data, "scale") * dict_get(data, "thickness") * rot2d(240) * unit
-    + dict_get(data, "scale") * dict_get(data, "gap") * rot2d(180) * unit,
+    + dict_get(data, "thickness") * rot2d(240) * unit
+    + dict_get(data, "gap") * rot2d(180) * unit,
 ];
 
 
@@ -79,22 +79,32 @@ module lambda(data) {
 }
 
 module flake(data) {
+    new_data = update_params(data);
     for (idx = [0 : 5]) {
         rotate([0, 0, idx * 60]) 
-        translate(-lambda_points(data)[0][0]) 
-        translate([-dict_get(data, "scale"), 0, 0]) 
-        lambda(data);
+        translate(-lambda_points(new_data)[0][0])
+        translate([-dict_get(new_data, "scale"), 0, 0])
+        lambda(new_data);
     }
 }
 
 function dict_get(dict, key) =
   dict[search([key], dict)[0]][1];
 
+function update_params(data) = let
+    // factor was empirically found. It gives a flake that is circumscribed by the unit circle.
+    (factor = 2.25) [
+    [ "gap", dict_get(data, "scale") * dict_get(data, "gap") / factor ],
+    [ "height", dict_get(data, "height") ],
+    [ "scale", dict_get(data, "scale") / factor ],
+    [ "thickness", dict_get(data, "scale") * dict_get(data, "thickness") / factor ],
+];
+
 params = [
-    [ "scale", 10/2.25 ],
-    [ "thickness", 0.25 ],
-    [ "height", 1 ],
     [ "gap", 0.05 ],
+    [ "height", 1 ],
+    [ "scale", 10 ],
+    [ "thickness", 0.25 ],
 ];
 
 flake(params);
