@@ -1,4 +1,4 @@
-use <nixos-parametric.scad>
+use <flake-parametric.scad>
 
 params_top = [
     [ "gap", 0.075 ],
