@@ -2,22 +2,16 @@
   description = "djacu's personal site";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.nixpkgs-old.url = "github:NixOS/nixpkgs/c6b5632d7066510ec7a2cb0d24b1b24dac94cf82";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs = {
     self,
     nixpkgs,
-    nixpkgs-old,
     flake-utils,
   }:
     flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {
-          inherit system;
-          overlays = [];
-        };
-        pkgs-old = import nixpkgs-old {
           inherit system;
           overlays = [];
         };
@@ -73,7 +67,7 @@
           {nativeBuildInputs = [pkgs.makeWrapper];}
           ''
             mkdir -p $out/bin
-            ln -s ${pkgs-old.openscad}/bin/openscad $out/bin/openscad
+            ln -s ${pkgs.openscad}/bin/openscad $out/bin/openscad
             wrapProgram $out/bin/openscad \
               --set OPENSCADPATH ${libraries}
           '';
@@ -81,7 +75,7 @@
         packages = {
           inherit bosl2 constructive libraries;
           wopenscad = wrapped-openscad;
-          openscad = pkgs-old.openscad;
+          openscad = pkgs.openscad;
         };
         #apps.openscad = wrapped-openscad;
       }
