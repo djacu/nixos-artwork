@@ -1,17 +1,17 @@
-use <flake-parametric.scad>
+use <parametric-flake.scad>
 
 params_top = [
-    [ "gap", 0.075 ],
+    [ "gap", 0.1 ],
     [ "height", 2 ],
     [ "scale", 10 ],
-    [ "thickness", 0.25 ],
+    [ "thickness", 0.5 ],
 ];
 
 params_bottom = [
     [ "gap", 0 ],
     [ "height", 1.1 ],
     [ "scale", 10 ],
-    [ "thickness", 0.25 ],
+    [ "thickness", 0.5 ],
 ];
 
 union() {
