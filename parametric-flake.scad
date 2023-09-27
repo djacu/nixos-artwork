@@ -26,7 +26,6 @@ function inner_hex_points(data) = [
     Used to intersect with the short lambda leg.
 */
 module inner_hex(data) {
-    linear_extrude(dict_get(data, "height"))
     polygon(inner_hex_points(data));
 }
 
@@ -86,18 +85,19 @@ function gap_points(data) = [
     Generates a single lambda at the origin.
 */
 module lambda(data) {
+    linear_extrude(dict_get(data, "height"))
     union() {
         if (dict_get(data, "gap") == 0) {
-            linear_extrude(dict_get(data, "height")) polygon(lambda_points(data)[0]);
+            polygon(lambda_points(data)[0]);
         } else
         {
             difference() {
-                linear_extrude(dict_get(data, "height")) polygon(lambda_points(data)[0]);
-                linear_extrude(4 * dict_get(data, "height"), center=true) polygon(gap_points(data));
+                polygon(lambda_points(data)[0]);
+                polygon(gap_points(data));
             }
         }
         intersection() {
-            linear_extrude(dict_get(data, "height")) polygon(lambda_points(data)[1]);
+            polygon(lambda_points(data)[1]);
             inner_hex(data);
         }
     }
