@@ -14,6 +14,13 @@ function rot2d(angle) = [
 /*
     Calculates the points for a hexagon.
     Used to reference off of for creating the lambda.
+    Points are created starting from the right and moving counter-clockwise.
+
+         2   1
+
+      3         0
+
+         4   5
 */
 function inner_hex_points(data) = [
     for (angle = [0 : 60 : 300]) 
@@ -21,63 +28,38 @@ function inner_hex_points(data) = [
 ];
 
 
-/*
-    Generates a hexagon solid.
-    Used to intersect with the short lambda leg.
-*/
-module inner_hex(data) {
-    polygon(inner_hex_points(data));
-}
-
 
 /*
     Calculates the points for making a lambda.
 */
 function lambda_points(data) =
-// lambda0 is the long leg and lambda1 is the short leg.
 let (
-    lambda0 = [
-        inner_hex_points(data)[2]
-        + dict_get(data, "thickness") * rot2d(60) * unit,
-        inner_hex_points(data)[5]
-        + dict_get(data, "thickness") * rot2d(0) * unit,
-        inner_hex_points(data)[5]
-        + dict_get(data, "thickness") * rot2d(180) * unit,
-        inner_hex_points(data)[2]
-        + dict_get(data, "thickness") * rot2d(240) * unit,
-    ],
-    lambda1 = [
-        origin
-        + dict_get(data, "thickness") * rot2d(60) * unit
-        + dict_get(data, "thickness") * rot2d(120) * unit,
-        origin
-        + dict_get(data, "thickness") * rot2d(60) * unit
-        + dict_get(data, "thickness") * rot2d(-60) * unit,
-        inner_hex_points(data)[4]
-        + dict_get(data, "thickness") * rot2d(0) * unit,
-        inner_hex_points(data)[4]
-        + dict_get(data, "thickness") * rot2d(180) * unit,
-    ]
+    hex_points = inner_hex_points(data),
+    thickness = dict_get(data, "thickness") / 2,
+    top_left = hex_points[2],
+    bottom_left = hex_points[4],
+    bottom_right = hex_points[5],
+    v_0 = thickness * unit,
+    v_p60 = thickness * rot2d(60) * unit,
+    v_n60 = thickness * rot2d(-60) * unit,
+    v_n90 = thickness * rot2d(-90) * unit,
+    gap = dict_get(data, "gap") * rot2d(-60) * unit
 )
-[lambda0, lambda1];
-
-
-/*
-    Calculates the points for making a gap between lambdas.
-*/
-function gap_points(data) = [
-    inner_hex_points(data)[2]
-    + dict_get(data, "thickness") * rot2d(60) * unit
-    + dict_get(data, "gap") * rot2d(90) * unit,
-    inner_hex_points(data)[2]
-    + dict_get(data, "thickness") * rot2d(60) * unit
-    + dict_get(data, "gap") * rot2d(-60) * unit,
-    inner_hex_points(data)[2]
-    + dict_get(data, "thickness") * rot2d(240) * unit
-    + dict_get(data, "gap") * rot2d(-60) * unit,
-    inner_hex_points(data)[2]
-    + dict_get(data, "thickness") * rot2d(240) * unit
-    + dict_get(data, "gap") * rot2d(180) * unit,
+[
+    [
+        top_left + v_p60,
+    ],
+    [
+        top_left - v_p60 + gap,
+        top_left + v_p60 + gap,
+        bottom_right + v_0,
+        bottom_right - v_0,
+        sqrt(3) * v_n90,
+        bottom_left + v_0,
+        bottom_left,
+        bottom_left - v_n60,
+        -v_0
+    ]
 ];
 
 
@@ -85,22 +67,9 @@ function gap_points(data) = [
     Generates a single lambda at the origin.
 */
 module lambda(data) {
-    linear_extrude(dict_get(data, "height"))
-    union() {
-        if (dict_get(data, "gap") == 0) {
-            polygon(lambda_points(data)[0]);
-        } else
-        {
-            difference() {
-                polygon(lambda_points(data)[0]);
-                polygon(gap_points(data));
-            }
-        }
-        intersection() {
-            polygon(lambda_points(data)[1]);
-            inner_hex(data);
-        }
-    }
+    new_data = update_params(data);
+    linear_extrude(dict_get(new_data, "height"))
+    polygon(lambda_points(new_data)[1]);
 }
 
 
@@ -113,7 +82,8 @@ module flake(data) {
         rotate([0, 0, idx * 60]) 
         translate(-lambda_points(new_data)[0][0])
         translate([-dict_get(new_data, "scale"), 0, 0])
-        lambda(new_data);
+        linear_extrude(dict_get(new_data, "height"))
+        polygon(lambda_points(new_data)[1]);
     }
 }
 
@@ -139,7 +109,7 @@ function dict_get(dict, key) =
 function update_params(data) = let
     // factor was empirically found. It gives a flake that is circumscribed by the unit circle.
     (factor = 2.25) [
-    [ "gap", dict_get(data, "scale") * dict_get(data, "gap") / factor ],
+    [ "gap", 0.75 * dict_get(data, "scale") * dict_get(data, "gap") / factor ],
     [ "height", dict_get(data, "height") ],
     [ "scale", dict_get(data, "scale") / factor ],
     [ "thickness", dict_get(data, "scale") * dict_get(data, "thickness") / factor ],
@@ -154,19 +124,19 @@ function update_params(data) = let
     `scale` - The radial (x,y) size of the flake.
     `thickness` - The thickness of the lambda legs.
 
-    `scale` updates `gap` and `thcikness` so there is no need to compesate these values.
+    `scale` updates `gap` and `thickness` so there is no need to compesate these values.
     A `gap` of 0 will leave no gap between the lambdas.
     A `gap` of 1 will remove the top portion of the long lambda leg until the point where the two lambda legs intersect.
 
-    A `gap` of 0.05 to 0.1 is a good value for replicating the official NixOS flake.
-    A `thickness` of 0.25 is a good value for replicating the official NixOS flake.
+    A `gap` of 0.05 to 0.15 is a good value for replicating the official NixOS flake.
+    A `thickness` of 0.5 is a good value for replicating the official NixOS flake.
     OpenSCAD doesn't have a concept of units so use `scale` and `height` values in the desired ratio.
 */
 params = [
-    [ "gap", 0.05 ],
+    [ "gap", 0.1 ],
     [ "height", 1 ],
     [ "scale", 10 ],
-    [ "thickness", 0.25 ],
+    [ "thickness", 0.5 ],
 ];
 
 
