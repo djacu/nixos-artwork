@@ -31,6 +31,10 @@ function inner_hex_points(data) = [
 
 /*
     Calculates the points for making a lambda.
+
+    Returns two a list of two lists.
+    The first list contains the offset for making a flake.
+    The second list is used to form the lambda polygon.
 */
 function lambda_points(data) =
 let (
