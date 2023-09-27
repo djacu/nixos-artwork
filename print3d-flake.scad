@@ -5,6 +5,7 @@ params_top = [
     [ "height", 2 ],
     [ "scale", 10 ],
     [ "thickness", 0.5 ],
+    [ "colors", ["#5277C3", "#7EBAE4"]],
 ];
 
 params_bottom = [
@@ -12,6 +13,7 @@ params_bottom = [
     [ "height", 1.1 ],
     [ "scale", 10 ],
     [ "thickness", 0.5 ],
+    [ "colors", ["#5277C3", "#7EBAE4"]],
 ];
 
 union() {

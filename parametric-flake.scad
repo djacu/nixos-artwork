@@ -82,7 +82,10 @@ module lambda(data) {
 */
 module flake(data) {
     new_data = update_params(data);
+    colors = dict_get(data, "colors");
+    echo(colors);
     for (idx = [0 : 5]) {
+        color(colors[idx % len(colors)])
         rotate([0, 0, idx * 60]) 
         translate(-lambda_points(new_data)[0][0])
         translate([-dict_get(new_data, "scale"), 0, 0])
@@ -141,6 +144,7 @@ params = [
     [ "height", 1 ],
     [ "scale", 10 ],
     [ "thickness", 0.5 ],
+    [ "colors", ["#5277C3", "#7EBAE4"]],
 ];
 
 

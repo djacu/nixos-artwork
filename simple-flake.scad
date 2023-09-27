@@ -5,8 +5,7 @@ params = [
     [ "height", 1 ],
     [ "scale", 10 ],
     [ "thickness", 0.5 ],
+    [ "colors", ["#5277C3", "#7EBAE4"]],
 ];
 
-union() {
-    flake(params);
-}
+flake(params);
